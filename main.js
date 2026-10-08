@@ -1,5 +1,230 @@
 /* vxThails - Vanilla JS */
 (function () {
+
+  // Support reminder policy.
+  const FIRST_REMINDER_DELAY = 72 * 60 * 60 * 1000;
+  const REMINDER_COOLDOWN = 28 * 24 * 60 * 60 * 1000;
+  const SUPPORT_REMINDER_KEY = 'vxThails.support-reminders';
+  function localUsageDate(now) {
+    const date = new Date(now);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+  function reminderEligible(state, now, threshold) {
+    return (
+      !state.disabled &&
+      state.firstUsedAt !== null &&
+      now - state.firstUsedAt >= FIRST_REMINDER_DELAY &&
+      state.activeDays.length === 3 &&
+      state.count >= threshold &&
+      now >= state.cooldownUntil
+    );
+  }
+  function createSupportReminderStore({
+    key,
+    threshold,
+    now = Date.now,
+    storage = () => localStorage,
+    locks = () => navigator.locks,
+    changed = () => {},
+  }) {
+    let unavailable = false;
+    function read() {
+      const raw = storage().getItem(key);
+      if (raw === null)
+        return {
+          version: 1,
+          firstUsedAt: null,
+          activeDays: [],
+          count: 0,
+          cooldownUntil: 0,
+          disabled: false,
+        };
+      const state = JSON.parse(raw);
+      const timestamp = (value) =>
+        typeof value === 'number' && Number.isFinite(value) && value >= 0;
+      if (
+        !state ||
+        state.version !== 1 ||
+        !(state.firstUsedAt === null || timestamp(state.firstUsedAt)) ||
+        !timestamp(state.cooldownUntil) ||
+        typeof state.disabled !== 'boolean' ||
+        !Number.isInteger(state.count) ||
+        state.count < 0 ||
+        state.count > threshold ||
+        !Array.isArray(state.activeDays) ||
+        state.activeDays.length > 3 ||
+        new Set(state.activeDays).size !== state.activeDays.length ||
+        state.activeDays.some(
+          (day) =>
+            typeof day !== 'string' ||
+            !/^\d{4}-\d{2}-\d{2}$/.test(day) ||
+            !Number.isFinite(Date.parse(day)) ||
+            new Date(day).toISOString().slice(0, 10) !== day,
+        )
+      ) {
+        throw new Error('Invalid support reminder preferences');
+      }
+      return state;
+    }
+    async function update(change) {
+      if (unavailable) return false;
+      try {
+        const coordinator = locks();
+        if (!coordinator) {
+          unavailable = true;
+          return false;
+        }
+        return await coordinator.request(key, () => {
+          const state = read();
+          const time = now();
+          if (!Number.isFinite(time) || time < 0)
+            throw new Error('Invalid reminder clock');
+          if (!change(state, time)) return false;
+          storage().setItem(key, JSON.stringify(state));
+          changed();
+          return true;
+        });
+      } catch {
+        // Optional reminders fail closed; primary/payment operations stay independent.
+        unavailable = true;
+        return false;
+      }
+    }
+    function resetCycle(state, time) {
+      state.count = 0;
+      state.cooldownUntil = time + REMINDER_COOLDOWN;
+    }
+    return {
+      recordUsage: () =>
+        update((state, time) => {
+          if (state.disabled) return false;
+          state.firstUsedAt ??= time;
+          const day = localUsageDate(time);
+          if (state.activeDays.length < 3 && !state.activeDays.includes(day))
+            state.activeDays.push(day);
+          state.count = Math.min(threshold, state.count + 1);
+          return true;
+        }),
+      claim: (canPresent) =>
+        update((state, time) => {
+          if (!canPresent() || !reminderEligible(state, time, threshold))
+            return false;
+          resetCycle(state, time);
+          return true;
+        }),
+      postpone: () =>
+        update((state, time) => {
+          resetCycle(state, time);
+          return true;
+        }),
+      disable: () =>
+        update((state) => {
+          state.disabled = true;
+          return true;
+        }),
+    };
+  }
+  const supportReminders = createSupportReminderStore({
+    key: SUPPORT_REMINDER_KEY,
+    threshold: 3,
+    changed: () => window.dispatchEvent(new Event('support-reminder-change')),
+  });
+
+  // Support reminder presentation.
+  /** Page-session presentation; persisted cycle claims belong to the local policy store. */
+  function createSupportReminderController({
+    store,
+    safe,
+    show,
+    getSupport,
+    openSupport,
+    onVisible = () => {},
+  }) {
+    let claimed = false;
+    let checking = false;
+    let disposed = false;
+    let notice = null;
+    function clear() {
+      claimed = false;
+      notice?.destroy();
+      notice = null;
+    }
+    async function finish(disable) {
+      await (disable ? store.disable() : store.postpone());
+      clear();
+      getSupport()?.focus();
+    }
+    async function evaluate() {
+      if (disposed || checking) return;
+      try {
+        if (!safe()) {
+          if (notice && !notice.element.contains(document.activeElement))
+            notice.element.hidden = true;
+          return;
+        }
+        if (!claimed) {
+          checking = true;
+          claimed = await store.claim(safe);
+          checking = false;
+        }
+        if (disposed || !claimed) return;
+        if (!notice)
+          notice = show({
+            support: () => {
+              clear();
+              openSupport(getSupport());
+            },
+            postpone: () => finish(false),
+            disable: () => finish(true),
+          });
+        notice.element.hidden =
+          !safe() && !notice.element.contains(document.activeElement);
+        if (!notice.element.hidden) onVisible();
+      } catch {
+        checking = false;
+        clear(); // Optional presentation must not break the primary workflow.
+      }
+    }
+    const observer = new MutationObserver((records) => {
+      if (records.some((record) => !record.target.closest?.('.support-reminder')))
+        queueMicrotask(evaluate);
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+    const events = [
+      'focus',
+      'blur',
+      'focusin',
+      'focusout',
+      'visibilitychange',
+      'storage',
+      'support-reminder-change',
+      'notifications-change',
+      'playing',
+      'pause',
+      'ended', 'resize', 'scroll',
+    ];
+    for (const name of events) window.addEventListener(name, evaluate, true);
+    window.addEventListener('support-dialog-open', clear);
+    const timer = setInterval(evaluate, 60_000);
+    void evaluate();
+    return {
+      evaluate,
+      destroy() {
+        disposed = true;
+        observer.disconnect();
+        clearInterval(timer);
+        for (const name of events)
+          window.removeEventListener(name, evaluate, true);
+        window.removeEventListener('support-dialog-open', clear);
+        clear();
+      },
+    };
+  }
+
   const boardEl = document.getElementById('board');
   const timeEl = document.getElementById('time');
   const matchesEl = document.getElementById('matches');
@@ -72,6 +297,8 @@
   let score = 0;
   let gameOver = false;
   let inTransition = false;
+  let gameplayStarted = false;
+  let countedLevel = null;
 
   // Scoring config
   const START_SCORE = 50;
@@ -394,6 +621,8 @@
     const type = grid[r][c];
 
     if (!type) return;
+    gameplayStarted = true;
+    window.dispatchEvent(new Event("support-reminder-change"));
 
     if (!selected) {
       selected = { r, c, type, el: tileEl };
@@ -481,8 +710,10 @@
     if (n2) n2.classList.add('matched');
     // remove from DOM shortly after animation
     setTimeout(() => {
-      if (n1?.parentElement) { n1.parentElement.innerHTML = ''; n1.parentElement.setAttribute('aria-hidden','true'); }
-      if (n2?.parentElement) { n2.parentElement.innerHTML = ''; n2.parentElement.setAttribute('aria-hidden','true'); }
+      for (const tile of [n1, n2]) {
+        const cell = tile?.parentElement;
+        if (cell) { cell.innerHTML = ''; cell.setAttribute('aria-hidden', 'true'); }
+      }
     }, 320);
   }
 
@@ -704,6 +935,7 @@
   };
   const lang = (getParam('lang','th') === 'en') ? 'en' : 'th';
   function applyI18n() {
+    updateReminderCopy();
     const dict = I18N[lang];
     document.querySelectorAll('[data-i18n]').forEach(node => {
       const key = node.getAttribute('data-i18n');
@@ -753,7 +985,9 @@
   });
 
   function openSupport(opener) {
-    if (supportDialog.open) return;
+    if (document.querySelector("dialog[open]")) return;
+    void supportReminders.postpone();
+    window.dispatchEvent(new Event("support-dialog-open"));
     opener.focus();
     supportOpener = opener;
     const dict = I18N[lang];
@@ -832,11 +1066,15 @@
 
   function doShuffle() {
     if (gameOver || inTransition) return;
+    gameplayStarted = true;
+    window.dispatchEvent(new Event("support-reminder-change"));
     shuffleBoard({ penalize: true, playSound: true });
   }
 
   function doHint() {
     if (gameOver || inTransition) return;
+    gameplayStarted = true;
+    window.dispatchEvent(new Event("support-reminder-change"));
     const pair = findAnyMatch();
     if (!pair) return;
     SFX.play('hint');
@@ -870,7 +1108,8 @@
   }
 
   function checkWin() {
-    if (remaining === 0) {
+    if (remaining === 0 && !inTransition) {
+      if (countedLevel !== level) { countedLevel = level; void supportReminders.recordUsage(); }
       stopTimer();
       inTransition = true;
       showToast(I18N[lang].level_cleared(level), 'good');
@@ -919,6 +1158,8 @@
     score = START_SCORE;
     gameOver = false;
     inTransition = false;
+    gameplayStarted = false;
+    countedLevel = null;
     document.body.classList.remove('victory','defeat');
     fxEl && (fxEl.innerHTML = '');
     const s = sizeForLevel(level);
@@ -939,6 +1180,7 @@
   // resetView removed (fixed tilt)
 
   function nextLevel() {
+    gameplayStarted = false;
     level += 1;
     const s = sizeForLevel(level);
     ROWS = s.rows; COLS = s.cols;
@@ -1006,7 +1248,70 @@
     const ro = new ResizeObserver(() => adjustTileScale());
     ro.observe(document.getElementById('board-wrapper'));
   }
+
+  const REMINDER_COPY = {
+    en: { name: 'Support reminder', message: 'Finding vxThails useful? Support its upkeep.', support: 'Support', notNow: 'Not now', never: 'Don’t remind me' },
+    th: { name: 'แจ้งเตือนการสนับสนุน', message: 'vxThails มีประโยชน์ไหม? ร่วมสนับสนุนการดูแลแอปนี้', support: 'สนับสนุน', notNow: 'ไว้คราวหน้า', never: 'ไม่ต้องเตือนอีก' },
+  };
+  function updateReminderCopy() {
+    const card = document.querySelector('.support-reminder');
+    if (!card) return;
+    const copy = REMINDER_COPY[lang] || REMINDER_COPY.en;
+    card.setAttribute('aria-label', copy.name);
+    card.querySelectorAll('[data-reminder]').forEach((node) => { node.textContent = copy[node.dataset.reminder]; });
+  }
+  function positionReminder() {
+    const card = document.querySelector('.support-reminder');
+    if (!card) return;
+    let inset = 16;
+    const left = Math.max(16, innerWidth - 396);
+    for (const control of [supportBtn.closest('footer'), shuffleBtn, hintBtn]) {
+      if (!control) continue;
+      const rect = control.getBoundingClientRect();
+      if (rect.width && rect.right > left && rect.top >= 0 && rect.top < innerHeight && rect.bottom > innerHeight - inset - card.offsetHeight)
+        inset = Math.max(inset, innerHeight - rect.top + 12);
+    }
+    card.style.setProperty('--reminder-inset', `${inset}px`);
+  }
+  function showReminder({ support, postpone, disable }) {
+    const element = document.createElement('section');
+    element.className = 'support-reminder';
+    element.setAttribute('role', 'status');
+    element.setAttribute('aria-live', 'polite');
+    const message = document.createElement('p'); message.dataset.reminder = 'message';
+    const actions = document.createElement('div'); actions.className = 'support-reminder-actions';
+    for (const [key, run] of [['support', support], ['notNow', postpone], ['never', disable]]) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.className = key === 'support' ? 'btn btn-secondary' : 'btn btn-ghost';
+      button.dataset.reminder = key; button.addEventListener('click', run); actions.append(button);
+    }
+    element.append(message, actions); document.body.append(element);
+    updateReminderCopy(); positionReminder();
+    let resizeFrame = 0;
+    const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(() => {
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(positionReminder);
+    }) : null;
+    resize?.observe(element);
+    return { element, destroy: () => { resize?.disconnect(); cancelAnimationFrame(resizeFrame); element.remove(); } };
+  }
+  function startSupportReminders() {
+    createSupportReminderController({
+      store: supportReminders,
+      safe: () => {
+        positionReminder();
+        return document.visibilityState === 'visible' && document.hasFocus() &&
+          (!gameplayStarted || gameOver) && !inTransition && menuDialog.getAttribute('aria-hidden') !== 'false' && !toastEl.classList.contains('show') && !document.querySelector('dialog[open]') &&
+          !document.activeElement?.matches('input, select, textarea, [contenteditable="true"]');
+      },
+      getSupport: () => supportBtn,
+      openSupport,
+      onVisible: positionReminder,
+      show: showReminder,
+    });
+  }
   init();
+  startSupportReminders();
 
   // Animations helpers
   function animateOnce(el, cls, ms) {
