@@ -101,12 +101,12 @@
         <div class="help" data-i18n="tip">เคล็ดลับ: เชื่อมไทล์ที่เหมือนกันโดยหักเลี้ยวได้ไม่เกิน 2 ครั้ง</div>
         <div class="publisher-attribution">
           <a class="publisher-credit" href="https://vionix.cloud" target="_blank" rel="noopener noreferrer">
-            <img src="assets/branding/vionix-logo.png" width="24" height="24" alt="" />
-            <span data-i18n="by_vionix">โดย Vionix Consulting</span>
+            <img src="assets/branding/vionix-logo.png" width="32" height="32" alt="" />
+            <span class="publisher-copy"><strong>vxThails</strong><span data-i18n="by_vionix">โดย Vionix Consulting</span></span>
           </a>
           <div class="project-actions">
-            <button id="aboutBtn" class="btn attribution-about" type="button" data-i18n="about">เกี่ยวกับ</button>
-            <button id="supportBtn" class="btn attribution-about" type="button" data-i18n="support_short">สนับสนุนโครงการนี้</button>
+            <button id="aboutBtn" class="btn attribution-about" type="button"><svg class="project-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 11v6M12 7h.01"/></svg><span data-i18n="about">About</span></button>
+            <button id="supportBtn" class="btn attribution-about" type="button"><svg class="project-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><span data-i18n="support_short">Support</span></button>
           </div>
         </div>
       </footer>
@@ -115,18 +115,27 @@
     <dialog id="aboutDialog" class="about-dialog" aria-labelledby="aboutTitle">
       <div class="about-dialog-header">
         <h2 id="aboutTitle" data-i18n="about_title">เกี่ยวกับ vxThails</h2>
-        <button id="aboutCloseBtn" class="btn attribution-about" type="button" data-i18n="close" autofocus>ปิด</button>
+        <button id="aboutCloseBtn" class="support-close" type="button" autofocus><span aria-hidden="true">×</span></button>
       </div>
-      <p data-i18n="about_description">เกมจับคู่ไทล์ในเบราว์เซอร์ พร้อมธีมไทยและไดโนเสาร์ สร้างโดย Vionix Consulting</p>
-      <nav class="project-links" aria-label="Project links">
-        <a href="https://vionix.cloud" target="_blank" rel="noopener noreferrer" data-i18n="visit_vionix">เยี่ยมชม Vionix Consulting</a>
-        <a href="https://github.com/vionix-th/vxThails" target="_blank" rel="noopener noreferrer" data-i18n="source_code">ซอร์สโค้ด</a>
-        <a href="https://github.com/vionix-th/vxThails/issues" target="_blank" rel="noopener noreferrer" data-i18n="report_issue">รายงานปัญหา</a>
-        <a href="https://github.com/vionix-th/vxThails/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="code_license">สัญญาอนุญาตโค้ด (GPL-3.0-or-later)</a>
-        <a href="https://github.com/vionix-th/vxThails/blob/main/assets/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="art_license">สัญญาอนุญาตภาพ (CC BY-SA 4.0)</a>
-      </nav>
-      <button id="aboutSupportBtn" class="btn attribution-about" type="button" data-i18n="support_short">สนับสนุนโครงการนี้</button>
-      <p class="about-copyright">© Vionix Consulting</p>
+      <div class="about-content">
+        <a class="about-identity" href="https://vionix.cloud" target="_blank" rel="noopener noreferrer">
+          <img src="assets/branding/vionix-logo.png" width="48" height="48" alt="" />
+          <span class="publisher-copy"><strong>vxThails</strong><span data-i18n="by_vionix">By Vionix Consulting</span></span>
+        </a>
+        <p class="about-description" data-i18n="about_description">A browser tile-matching game with Thai and dinosaur themes.</p>
+        <nav class="project-links" aria-label="Project links">
+          <a class="project-resource" href="https://github.com/vionix-th/vxThails" target="_blank" rel="noopener noreferrer"><svg class="project-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 5-7 7 7 7M16 5l7 7-7 7M14 3l-4 18"/></svg><span data-i18n="source_code">Source code</span><svg class="project-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M21 3l-9 9M10 3H3v18h18v-7"/></svg></a>
+          <a class="project-resource" href="https://github.com/vionix-th/vxThails/issues" target="_blank" rel="noopener noreferrer"><svg class="project-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l2.4-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg><span data-i18n="report_issue">Report an issue</span><svg class="project-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M21 3l-9 9M10 3H3v18h18v-7"/></svg></a>
+          <div class="project-licenses">
+            <a href="https://github.com/vionix-th/vxThails/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="code_license">Code license (GPL-3.0-or-later)</a>
+            <a href="https://github.com/vionix-th/vxThails/blob/main/assets/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="art_license">Art license (CC BY-SA 4.0)</a>
+          </div>
+        </nav>
+        <footer class="about-footer">
+          <span class="about-copyright">© Vionix Consulting</span>
+          <button id="aboutSupportBtn" class="attribution-about" type="button"><svg class="project-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><span data-i18n="support_short">Support</span></button>
+        </footer>
+      </div>
     </dialog>
 
     <dialog id="supportDialog" class="support-dialog" aria-labelledby="supportTitle">

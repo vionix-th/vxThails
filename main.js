@@ -673,7 +673,7 @@
       level_cleared: (n)=>`ผ่านด่าน ${n} แล้ว!`, game_over: 'จบเกม — คะแนนเหลือ 0 เริ่มใหม่เพื่อเล่นอีกครั้ง.',
       auto_shuffle: 'ไม่มีทางเดิน — สับไทล์อัตโนมัติ',
       by_vionix: 'โดย Vionix Consulting', about: 'เกี่ยวกับ', about_title: 'เกี่ยวกับ vxThails',
-      about_description: 'เกมจับคู่ไทล์ในเบราว์เซอร์ พร้อมธีมไทยและไดโนเสาร์ สร้างโดย Vionix Consulting',
+      about_description: 'เกมจับคู่ไทล์ในเบราว์เซอร์ พร้อมธีมไทยและไดโนเสาร์',
       visit_vionix: 'เยี่ยมชม Vionix Consulting', source_code: 'ซอร์สโค้ด', report_issue: 'รายงานปัญหา',
       code_license: 'สัญญาอนุญาตโค้ด (GPL-3.0-or-later)', art_license: 'สัญญาอนุญาตภาพ (CC BY-SA 4.0)',
       project_links: 'ลิงก์โครงการ', new_tab: 'เปิดในแท็บใหม่',
@@ -692,7 +692,7 @@
       level_cleared: (n)=>`Level ${n} cleared!`, game_over: 'Game Over — Score reached 0. New Game to retry.',
       auto_shuffle: 'No moves — auto-shuffled',
       by_vionix: 'By Vionix Consulting', about: 'About', about_title: 'About vxThails',
-      about_description: 'A browser tile-matching game with Thai and dinosaur themes. Created by Vionix Consulting.',
+      about_description: 'A browser tile-matching game with Thai and dinosaur themes.',
       visit_vionix: 'Visit Vionix Consulting', source_code: 'Source code', report_issue: 'Report an issue',
       code_license: 'Code license (GPL-3.0-or-later)', art_license: 'Art license (CC BY-SA 4.0)',
       project_links: 'Project links', new_tab: 'opens in a new tab',
@@ -716,6 +716,8 @@
     document.documentElement.lang = lang;
     document.querySelector('.publisher-credit').setAttribute('aria-label', `${dict.by_vionix} (${dict.new_tab})`);
     aboutDialog.querySelector('.project-links').setAttribute('aria-label', dict.project_links);
+    aboutDialog.querySelector('.about-identity').setAttribute('aria-label', `${dict.visit_vionix} (${dict.new_tab})`);
+    aboutCloseBtn.setAttribute('aria-label', dict.close);
     document.getElementById('supportCloseBtn').setAttribute('aria-label', dict.close);
     for(const button of [supportBtn, document.getElementById('aboutSupportBtn')]) button.setAttribute('aria-label', dict.support_action);
     // reset view control removed
@@ -744,12 +746,15 @@
     });
   }
 
-  aboutBtn.addEventListener('click', () => aboutDialog.showModal());
+  aboutBtn.addEventListener('click', () => { aboutBtn.focus(); aboutDialog.showModal(); });
   aboutCloseBtn.addEventListener('click', () => aboutDialog.close());
-  aboutDialog.addEventListener('close', () => { if(!supportDialog.open) aboutBtn.focus(); });
+  aboutDialog.addEventListener('close', () => {
+    if(!supportDialog.open && document.activeElement === document.body) aboutBtn.focus();
+  });
 
   function openSupport(opener) {
     if (supportDialog.open) return;
+    opener.focus();
     supportOpener = opener;
     const dict = I18N[lang];
     supportFeedback.hidden = false;
@@ -779,7 +784,7 @@
   supportDialog.addEventListener('close', () => {
     window.clearTimeout(supportTimer);
     supportFrameHost.replaceChildren();
-    if (supportOpener && supportOpener.isConnected) supportOpener.focus();
+    if (supportOpener && supportOpener.isConnected && document.activeElement === document.body) supportOpener.focus();
     supportOpener = null;
   });
 
