@@ -504,3 +504,16 @@ input[type="number"].sel { -moz-appearance: textfield; }
 .project-links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 .project-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--text); text-underline-offset: 3px; }
 .about-copyright { color: var(--muted); font-size: 12px; }
+
+/* Optional support retains the game palette and native modal lifecycle. */
+.support-dialog { width: min(560px, calc(100% - 16px)); max-height: calc(100dvh - 16px); overflow: hidden; padding: 0; border: 1px solid rgba(255,255,255,0.18); border-radius: var(--radius); background: var(--panel); color: var(--text); }
+.support-dialog[open] { display: flex; flex-direction: column; }
+.support-dialog::backdrop { background: rgba(5,8,20,0.7); }
+.support-header { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.18); }
+.support-header h2 { margin: 0; font-size: 20px; overflow-wrap: anywhere; }
+.support-header button { flex-shrink: 0; }
+.support-body { min-height: 0; overflow: auto; padding: 16px; }
+.support-body p { line-height: 1.6; }
+.support-body a { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); text-underline-offset: 3px; }
+.support-body iframe { display: block; width: 100%; height: 712px; margin-top: 16px; border: 0; background: #f9f9f9; color-scheme: light; }
+.support-body a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
