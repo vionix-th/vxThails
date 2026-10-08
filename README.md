@@ -97,3 +97,7 @@ Manual smoke tests in a modern browser:
 - Sounds: third‑party and licensed separately — see `CREDITS.md`.
 
 © Vionix Consulting
+
+## Publisher attribution
+
+The footer links to [Vionix Consulting](https://vionix.cloud) with a locally bundled publisher logo. About opens a native dialog with English/Thai purpose, source repository, issue tracker, and separate code and art license links. Escape and Close dismiss the dialog and restore focus to About. Attribution uses the current game theme. Donation support is a separate planned step.

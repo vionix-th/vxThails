@@ -99,8 +99,31 @@
 
       <footer class="bottombar">
         <div class="help" data-i18n="tip">เคล็ดลับ: เชื่อมไทล์ที่เหมือนกันโดยหักเลี้ยวได้ไม่เกิน 2 ครั้ง</div>
+        <div class="publisher-attribution">
+          <a class="publisher-credit" href="https://vionix.cloud" target="_blank" rel="noopener noreferrer">
+            <img src="assets/branding/vionix-logo.png" width="24" height="24" alt="" />
+            <span data-i18n="by_vionix">โดย Vionix Consulting</span>
+          </a>
+          <button id="aboutBtn" class="btn attribution-about" type="button" data-i18n="about">เกี่ยวกับ</button>
+        </div>
       </footer>
     </div>
+
+    <dialog id="aboutDialog" class="about-dialog" aria-labelledby="aboutTitle">
+      <div class="about-dialog-header">
+        <h2 id="aboutTitle" data-i18n="about_title">เกี่ยวกับ vxThails</h2>
+        <button id="aboutCloseBtn" class="btn attribution-about" type="button" data-i18n="close" autofocus>ปิด</button>
+      </div>
+      <p data-i18n="about_description">เกมจับคู่ไทล์ในเบราว์เซอร์ พร้อมธีมไทยและไดโนเสาร์ สร้างโดย Vionix Consulting</p>
+      <nav class="project-links" aria-label="Project links">
+        <a href="https://vionix.cloud" target="_blank" rel="noopener noreferrer" data-i18n="visit_vionix">เยี่ยมชม Vionix Consulting</a>
+        <a href="https://github.com/vionix-th/vxThails" target="_blank" rel="noopener noreferrer" data-i18n="source_code">ซอร์สโค้ด</a>
+        <a href="https://github.com/vionix-th/vxThails/issues" target="_blank" rel="noopener noreferrer" data-i18n="report_issue">รายงานปัญหา</a>
+        <a href="https://github.com/vionix-th/vxThails/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="code_license">สัญญาอนุญาตโค้ด (GPL-3.0-or-later)</a>
+        <a href="https://github.com/vionix-th/vxThails/blob/main/assets/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="art_license">สัญญาอนุญาตภาพ (CC BY-SA 4.0)</a>
+      </nav>
+      <p class="about-copyright">© Vionix Consulting</p>
+    </dialog>
 
     <script src="main.js"></script>
   </body>

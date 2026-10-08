@@ -19,6 +19,9 @@
   const toastEl = document.getElementById('toast');
   const fxEl = document.getElementById('fx');
   const pageBgEl = document.getElementById('page-bg');
+  const aboutBtn = document.getElementById('aboutBtn');
+  const aboutDialog = document.getElementById('aboutDialog');
+  const aboutCloseBtn = document.getElementById('aboutCloseBtn');
 
   // Board scale driven solely by auto-fit
 
@@ -658,6 +661,11 @@
       tileset_label: 'ชุดไทล์', tileset_thai: 'ไทย', tileset_dino: 'ไดโนเสาร์', language_label: 'ภาษา',
       level_cleared: (n)=>`ผ่านด่าน ${n} แล้ว!`, game_over: 'จบเกม — คะแนนเหลือ 0 เริ่มใหม่เพื่อเล่นอีกครั้ง.',
       auto_shuffle: 'ไม่มีทางเดิน — สับไทล์อัตโนมัติ',
+      by_vionix: 'โดย Vionix Consulting', about: 'เกี่ยวกับ', about_title: 'เกี่ยวกับ vxThails',
+      about_description: 'เกมจับคู่ไทล์ในเบราว์เซอร์ พร้อมธีมไทยและไดโนเสาร์ สร้างโดย Vionix Consulting',
+      visit_vionix: 'เยี่ยมชม Vionix Consulting', source_code: 'ซอร์สโค้ด', report_issue: 'รายงานปัญหา',
+      code_license: 'สัญญาอนุญาตโค้ด (GPL-3.0-or-later)', art_license: 'สัญญาอนุญาตภาพ (CC BY-SA 4.0)',
+      project_links: 'ลิงก์โครงการ', new_tab: 'เปิดในแท็บใหม่',
       close: 'ปิด'
     },
     en: {
@@ -669,6 +677,11 @@
       tileset_label: 'Tile set', tileset_thai: 'Thai', tileset_dino: 'Dinosaur', language_label: 'Language',
       level_cleared: (n)=>`Level ${n} cleared!`, game_over: 'Game Over — Score reached 0. New Game to retry.',
       auto_shuffle: 'No moves — auto-shuffled',
+      by_vionix: 'By Vionix Consulting', about: 'About', about_title: 'About vxThails',
+      about_description: 'A browser tile-matching game with Thai and dinosaur themes. Created by Vionix Consulting.',
+      visit_vionix: 'Visit Vionix Consulting', source_code: 'Source code', report_issue: 'Report an issue',
+      code_license: 'Code license (GPL-3.0-or-later)', art_license: 'Art license (CC BY-SA 4.0)',
+      project_links: 'Project links', new_tab: 'opens in a new tab',
       close: 'Close'
     }
   };
@@ -683,6 +696,9 @@
     });
     // Attributes and document title
     document.title = dict.title;
+    document.documentElement.lang = lang;
+    document.querySelector('.publisher-credit').setAttribute('aria-label', `${dict.by_vionix} (${dict.new_tab})`);
+    aboutDialog.querySelector('.project-links').setAttribute('aria-label', dict.project_links);
     // reset view control removed
     if (tilesetSelect) tilesetSelect.setAttribute('aria-label', dict.tileset_label);
     if (langSelect) langSelect.setAttribute('aria-label', dict.language_label);
@@ -708,6 +724,10 @@
       window.addEventListener(evt, () => { if (SFX.enabled) SFX.ensureCtx(); }, { once: true, passive: true });
     });
   }
+
+  aboutBtn.addEventListener('click', () => aboutDialog.showModal());
+  aboutCloseBtn.addEventListener('click', () => aboutDialog.close());
+  aboutDialog.addEventListener('close', () => aboutBtn.focus());
 
   // Menu dialog
   function openMenu() { if (menuDialog) menuDialog.setAttribute('aria-hidden', 'false'); }
