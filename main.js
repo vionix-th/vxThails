@@ -25,6 +25,8 @@
   const supportBtn = document.getElementById('supportBtn');
   const supportDialog = document.getElementById('supportDialog');
   const supportStatus = document.getElementById('supportStatus');
+  const supportFeedback = document.getElementById('supportFeedback');
+  const supportExternal = document.getElementById('supportExternal');
   const supportFrameHost = document.getElementById('supportFrameHost');
   const SUPPORT_URL = 'https://ko-fi.com/vionixconsulting';
   const SUPPORT_EMBED_URL = `${SUPPORT_URL}/?hidefeed=true&widget=true&embed=true&preview=true`;
@@ -675,10 +677,9 @@
       visit_vionix: 'เยี่ยมชม Vionix Consulting', source_code: 'ซอร์สโค้ด', report_issue: 'รายงานปัญหา',
       code_license: 'สัญญาอนุญาตโค้ด (GPL-3.0-or-later)', art_license: 'สัญญาอนุญาตภาพ (CC BY-SA 4.0)',
       project_links: 'ลิงก์โครงการ', new_tab: 'เปิดในแท็บใหม่',
-      support_action: 'สนับสนุนโครงการนี้', support_title: 'สนับสนุน vxThails',
-      support_description: 'การสนับสนุนโดยสมัครใจแบบครั้งเดียวหรือรายเดือนช่วยดูแล vxThails และโครงการ Vionix อื่น ๆ ที่ให้ใช้ฟรี เงินสนับสนุนส่งให้ Vionix Consulting ผ่าน Ko-fi ไม่จำเป็นต้องบริจาคเพื่อใช้แอปนี้',
+      support_action: 'สนับสนุนโครงการนี้', support_short: 'สนับสนุน', support_title: 'สนับสนุน vxThails',
       support_external: 'เปิด Ko-fi ในแท็บใหม่', support_frame: 'สนับสนุน Vionix Consulting บน Ko-fi',
-      support_loading: 'กำลังโหลด Ko-fi…', support_delayed: 'ใช้เวลานานกว่าที่คาดไว้ ลองเปิด Ko-fi ในแท็บใหม่',
+      support_loading: 'กำลังโหลด Ko-fi…', support_delayed: 'ใช้เวลานานกว่าที่คาดไว้',
       close: 'ปิด'
     },
     en: {
@@ -695,10 +696,9 @@
       visit_vionix: 'Visit Vionix Consulting', source_code: 'Source code', report_issue: 'Report an issue',
       code_license: 'Code license (GPL-3.0-or-later)', art_license: 'Art license (CC BY-SA 4.0)',
       project_links: 'Project links', new_tab: 'opens in a new tab',
-      support_action: 'Support this project', support_title: 'Support vxThails',
-      support_description: 'Optional one-time or monthly support helps maintain vxThails and other free Vionix projects. Contributions go to Vionix Consulting through Ko-fi. Donating is not required to use this app.',
+      support_action: 'Support this project', support_short: 'Support', support_title: 'Support vxThails',
       support_external: 'Open Ko-fi in new tab', support_frame: 'Support Vionix Consulting on Ko-fi',
-      support_loading: 'Loading Ko-fi…', support_delayed: 'Taking longer than expected. Try opening Ko-fi in a new tab.',
+      support_loading: 'Loading Ko-fi…', support_delayed: 'Taking longer than expected.',
       close: 'Close'
     }
   };
@@ -716,6 +716,8 @@
     document.documentElement.lang = lang;
     document.querySelector('.publisher-credit').setAttribute('aria-label', `${dict.by_vionix} (${dict.new_tab})`);
     aboutDialog.querySelector('.project-links').setAttribute('aria-label', dict.project_links);
+    document.getElementById('supportCloseBtn').setAttribute('aria-label', dict.close);
+    for(const button of [supportBtn, document.getElementById('aboutSupportBtn')]) button.setAttribute('aria-label', dict.support_action);
     // reset view control removed
     if (tilesetSelect) tilesetSelect.setAttribute('aria-label', dict.tileset_label);
     if (langSelect) langSelect.setAttribute('aria-label', dict.language_label);
@@ -744,22 +746,25 @@
 
   aboutBtn.addEventListener('click', () => aboutDialog.showModal());
   aboutCloseBtn.addEventListener('click', () => aboutDialog.close());
-  aboutDialog.addEventListener('close', () => aboutBtn.focus());
+  aboutDialog.addEventListener('close', () => { if(!supportDialog.open) aboutBtn.focus(); });
 
   function openSupport(opener) {
     if (supportDialog.open) return;
     supportOpener = opener;
     const dict = I18N[lang];
+    supportFeedback.hidden = false;
+    supportExternal.hidden = true;
     supportStatus.hidden = false;
     supportStatus.textContent = dict.support_loading;
     const frame = document.createElement('iframe');
     frame.src = SUPPORT_EMBED_URL;
     frame.title = dict.support_frame;
     frame.referrerPolicy = 'no-referrer';
-    supportTimer = window.setTimeout(() => { supportStatus.textContent = dict.support_delayed; }, 10_000);
+    supportTimer = window.setTimeout(() => { supportStatus.textContent = dict.support_delayed; supportExternal.hidden = false; }, 10_000);
     frame.addEventListener('load', () => {
       window.clearTimeout(supportTimer);
       supportStatus.hidden = true;
+      supportFeedback.hidden = true;
     });
     supportFrameHost.replaceChildren(frame);
     supportDialog.showModal();

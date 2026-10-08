@@ -104,8 +104,10 @@
             <img src="assets/branding/vionix-logo.png" width="24" height="24" alt="" />
             <span data-i18n="by_vionix">โดย Vionix Consulting</span>
           </a>
-          <button id="aboutBtn" class="btn attribution-about" type="button" data-i18n="about">เกี่ยวกับ</button>
-          <button id="supportBtn" class="btn attribution-about" type="button" data-i18n="support_action">สนับสนุนโครงการนี้</button>
+          <div class="project-actions">
+            <button id="aboutBtn" class="btn attribution-about" type="button" data-i18n="about">เกี่ยวกับ</button>
+            <button id="supportBtn" class="btn attribution-about" type="button" data-i18n="support_short">สนับสนุนโครงการนี้</button>
+          </div>
         </div>
       </footer>
     </div>
@@ -123,19 +125,20 @@
         <a href="https://github.com/vionix-th/vxThails/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="code_license">สัญญาอนุญาตโค้ด (GPL-3.0-or-later)</a>
         <a href="https://github.com/vionix-th/vxThails/blob/main/assets/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="art_license">สัญญาอนุญาตภาพ (CC BY-SA 4.0)</a>
       </nav>
-      <button id="aboutSupportBtn" class="btn attribution-about" type="button" data-i18n="support_action">สนับสนุนโครงการนี้</button>
+      <button id="aboutSupportBtn" class="btn attribution-about" type="button" data-i18n="support_short">สนับสนุนโครงการนี้</button>
       <p class="about-copyright">© Vionix Consulting</p>
     </dialog>
 
     <dialog id="supportDialog" class="support-dialog" aria-labelledby="supportTitle">
       <header class="support-header">
         <h2 id="supportTitle" data-i18n="support_title">สนับสนุน vxThails</h2>
-        <button id="supportCloseBtn" class="btn attribution-about" type="button" data-i18n="close" autofocus>ปิด</button>
+        <button id="supportCloseBtn" class="support-close" type="button" autofocus><span aria-hidden="true">×</span></button>
       </header>
       <div class="support-body">
-        <p data-i18n="support_description">การสนับสนุนโดยสมัครใจแบบครั้งเดียวหรือรายเดือนช่วยดูแล vxThails และโครงการ Vionix อื่น ๆ ที่ให้ใช้ฟรี เงินสนับสนุนส่งให้ Vionix Consulting ผ่าน Ko-fi ไม่จำเป็นต้องบริจาคเพื่อใช้แอปนี้</p>
-        <a href="https://ko-fi.com/vionixconsulting" target="_blank" rel="noopener noreferrer" data-i18n="support_external">เปิด Ko-fi ในแท็บใหม่</a>
-        <p id="supportStatus" role="status"></p>
+        <div id="supportFeedback" class="support-feedback">
+          <p id="supportStatus" role="status"></p>
+          <a id="supportExternal" href="https://ko-fi.com/vionixconsulting" target="_blank" rel="noopener noreferrer" data-i18n="support_external" hidden>Open Ko-fi in new tab</a>
+        </div>
         <div id="supportFrameHost"></div>
       </div>
     </dialog>
