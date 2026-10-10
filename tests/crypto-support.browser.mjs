@@ -25,6 +25,8 @@ export async function verifyCryptoSupport({ page, url, app, locale, width, decod
   await page.locator('#supportBtn').click();
   const dialog = page.locator('#supportDialog');
   const tabs = dialog.getByRole('tab');
+  assert.deepEqual(await tabs.allTextContents(), locale === 'th' ? ['เงินสด', 'คริปโต'] : ['Cash', 'Crypto']);
+  assert.equal(await tabs.evaluateAll((items) => items.every((tab) => tab.querySelector('svg')?.getAttribute('aria-hidden') === 'true')), true);
   assert.equal(await tabs.nth(0).getAttribute('aria-selected'), 'true');
   await tabs.nth(1).click();
   assert.equal(await tabs.nth(1).textContent(), locale === 'th' ? 'คริปโต' : 'Crypto');
