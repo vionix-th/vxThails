@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
-const networks = ['Bitcoin', 'Ethereum Mainnet', 'Solana', 'Base', 'Arbitrum One', 'Optimism', 'Polygon PoS', 'BNB Smart Chain'];
-const addresses = ['bc1qesd92qv7h3mlh4qqs4grz3e32phvxj6spwkcyz', '0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2', '7oLWWpSrEG6aDKVZDAyuAjF3kDKEgAmnG3Q7JAb9uUXy'];
+const networks = ['Bitcoin', 'Ethereum Mainnet', 'Solana', 'Base', 'Arbitrum One', 'Optimism', 'Polygon PoS', 'BNB Smart Chain', 'Zcash', 'Monero'];
+const addresses = ['bc1qesd92qv7h3mlh4qqs4grz3e32phvxj6spwkcyz', '0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2', '7oLWWpSrEG6aDKVZDAyuAjF3kDKEgAmnG3Q7JAb9uUXy', 't1ffcdEs6WUZsK4iTpSg3fYM3STmZ8rfXjy', '47XCwRMTyEvav4QMqeh8ChaLg4Ubt7ASSWvyW9BG8vB19wXUS4E7C1qWkFnyzFFoTcf8AAmrUDG11EE2B6GFgFAWArkriQd'];
 
 const walletUris = [
   'bitcoin:bc1qesd92qv7h3mlh4qqs4grz3e32phvxj6spwkcyz',
@@ -12,6 +12,8 @@ const walletUris = [
   'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@10',
   'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@137',
   'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@56',
+  'zcash:t1ffcdEs6WUZsK4iTpSg3fYM3STmZ8rfXjy',
+  'monero:47XCwRMTyEvav4QMqeh8ChaLg4Ubt7ASSWvyW9BG8vB19wXUS4E7C1qWkFnyzFFoTcf8AAmrUDG11EE2B6GFgFAWArkriQd',
 ];
 
 /** Workspace harness supplies a Playwright page and an independent PNG QR decoder. */
@@ -59,7 +61,7 @@ export async function verifyCryptoSupport({ page, url, app, locale, width, decod
   for (const [index, name] of networks.entries()) {
     await combo.click();
     await dialog.getByRole('option', { name, exact: true }).click();
-    const address = addresses[index === 0 ? 0 : index === 2 ? 2 : 1];
+    const address = [addresses[0], addresses[1], addresses[2], addresses[1], addresses[1], addresses[1], addresses[1], addresses[1], addresses[3], addresses[4]][index];
     const walletLink = dialog.getByRole('link', { name: address, exact: true });
     assert.equal(await walletLink.textContent(), address);
     assert.equal(await walletLink.getAttribute('href'), walletUris[index]);
@@ -72,9 +74,15 @@ export async function verifyCryptoSupport({ page, url, app, locale, width, decod
     await page.keyboard.press('Enter');
     assert.equal(await walletLink.getAttribute('data-activated-uri'), walletUris[index]);
     assert.equal(await decodeQR(dialog.locator('.donation-qr')), address);
+    if (index >= 8) {
+      await dialog.locator('.donation-copy').click();
+      assert.equal(await page.evaluate(() => navigator.clipboard.readText()), address);
+    }
     assert.deepEqual(await dialog.boundingBox(), baseline);
-    if (index !== 0) assert.match(await dialog.locator('.donation-assets').textContent(), locale === 'th' ? /USDC, USDT และโทเคนอื่น/ : /USDC, USDT and other tokens/);
+    if (index > 0 && index < 8) assert.match(await dialog.locator('.donation-assets').textContent(), locale === 'th' ? /USDC, USDT และโทเคนอื่น/ : /USDC, USDT and other tokens/);
+    else assert.equal(await dialog.locator('.donation-assets').textContent(), index === 0 ? 'BTC' : index === 8 ? 'ZEC' : 'XMR');
   }
+  await dialog.screenshot({ path: `/tmp/${app}-crypto-${width}-${locale}-monero.png` });
   assert.equal(await dialog.locator('.donation-instruction').count(), 0);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   const copy = dialog.locator('.donation-copy');
@@ -85,7 +93,7 @@ export async function verifyCryptoSupport({ page, url, app, locale, width, decod
   await copy.click();
   await dialog.getByRole('button', { name: locale === 'th' ? 'คัดลอกแล้ว' : 'Copied', exact: true }).waitFor();
   assert.equal(await copy.textContent(), locale === 'th' ? 'คัดลอกแล้ว' : 'Copied');
-  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), addresses[1]);
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), addresses[4]);
   assert.deepEqual(await dialog.boundingBox(), baseline);
   await page.clock.fastForward(2100);
   assert.equal(await copy.textContent(), locale === 'th' ? 'คัดลอกที่อยู่' : 'Copy address');
@@ -93,7 +101,7 @@ export async function verifyCryptoSupport({ page, url, app, locale, width, decod
   await copy.click();
   await dialog.getByRole('button', { name: locale === 'th' ? 'คัดลอกด้วยตนเอง' : 'Copy manually', exact: true }).waitFor();
   assert.equal(await copy.textContent(), locale === 'th' ? 'คัดลอกด้วยตนเอง' : 'Copy manually');
-  assert.equal(await page.evaluate(() => getSelection().toString()), addresses[1]);
+  assert.equal(await page.evaluate(() => getSelection().toString()), addresses[4]);
   assert.deepEqual(await dialog.boundingBox(), baseline);
   await combo.focus();
   await page.keyboard.press('Home');
