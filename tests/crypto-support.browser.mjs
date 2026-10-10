@@ -3,6 +3,17 @@ import assert from 'node:assert/strict';
 const networks = ['Bitcoin', 'Ethereum Mainnet', 'Solana', 'Base', 'Arbitrum One', 'Optimism', 'Polygon PoS', 'BNB Smart Chain'];
 const addresses = ['bc1qesd92qv7h3mlh4qqs4grz3e32phvxj6spwkcyz', '0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2', '7oLWWpSrEG6aDKVZDAyuAjF3kDKEgAmnG3Q7JAb9uUXy'];
 
+const walletUris = [
+  'bitcoin:bc1qesd92qv7h3mlh4qqs4grz3e32phvxj6spwkcyz',
+  'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@1',
+  'solana:7oLWWpSrEG6aDKVZDAyuAjF3kDKEgAmnG3Q7JAb9uUXy',
+  'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@8453',
+  'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@42161',
+  'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@10',
+  'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@137',
+  'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@56',
+];
+
 /** Workspace harness supplies a Playwright page and an independent PNG QR decoder. */
 export async function verifyCryptoSupport({ page, url, app, locale, width, decodeQR }) {
   const errors = [];
@@ -49,7 +60,17 @@ export async function verifyCryptoSupport({ page, url, app, locale, width, decod
     await combo.click();
     await dialog.getByRole('option', { name, exact: true }).click();
     const address = addresses[index === 0 ? 0 : index === 2 ? 2 : 1];
-    assert.equal(await dialog.locator('.donation-address').textContent(), address);
+    const walletLink = dialog.getByRole('link', { name: address, exact: true });
+    assert.equal(await walletLink.textContent(), address);
+    assert.equal(await walletLink.getAttribute('href'), walletUris[index]);
+    // Observe native link activation without launching an external wallet in automation.
+    await walletLink.evaluate((node) => node.addEventListener('click', (event) => {
+      event.preventDefault();
+      node.setAttribute('data-activated-uri', node.getAttribute('href'));
+    }, { once: true }));
+    await walletLink.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await walletLink.getAttribute('data-activated-uri'), walletUris[index]);
     assert.equal(await decodeQR(dialog.locator('.donation-qr')), address);
     assert.deepEqual(await dialog.boundingBox(), baseline);
     if (index !== 0) assert.match(await dialog.locator('.donation-assets').textContent(), locale === 'th' ? /USDC, USDT และโทเคนอื่น/ : /USDC, USDT and other tokens/);
