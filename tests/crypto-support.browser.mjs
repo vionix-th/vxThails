@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
-const networks = ['Bitcoin', 'Ethereum Mainnet', 'Solana', 'Base', 'Arbitrum One', 'Optimism', 'Polygon PoS', 'BNB Smart Chain', 'Zcash Transparent', 'Zcash Shielded', 'Monero'];
-const addresses = ['bc1qesd92qv7h3mlh4qqs4grz3e32phvxj6spwkcyz', '0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2', '7oLWWpSrEG6aDKVZDAyuAjF3kDKEgAmnG3Q7JAb9uUXy', 't1ffcdEs6WUZsK4iTpSg3fYM3STmZ8rfXjy', '47XCwRMTyEvav4QMqeh8ChaLg4Ubt7ASSWvyW9BG8vB19wXUS4E7C1qWkFnyzFFoTcf8AAmrUDG11EE2B6GFgFAWArkriQd', 'u1093sjwd5aleadm0j8jfzu0l7krkmv82yjrpk5j86j0vrkmy3eppkcv6e930qukvdy4p6nc8u0ttlwh6qu5gce84wht06xpzjzcqdwev0'];
+const networks = ['Bitcoin', 'Ethereum Mainnet', 'Solana', 'Base', 'Arbitrum One', 'Optimism', 'Polygon PoS', 'BNB Smart Chain', 'Zcash Transparent', 'Zcash Shielded', 'TRON', 'Dogecoin', 'Monero'];
+const addresses = ['bc1qesd92qv7h3mlh4qqs4grz3e32phvxj6spwkcyz', '0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2', '7oLWWpSrEG6aDKVZDAyuAjF3kDKEgAmnG3Q7JAb9uUXy', 't1ffcdEs6WUZsK4iTpSg3fYM3STmZ8rfXjy', '47XCwRMTyEvav4QMqeh8ChaLg4Ubt7ASSWvyW9BG8vB19wXUS4E7C1qWkFnyzFFoTcf8AAmrUDG11EE2B6GFgFAWArkriQd', 'u1093sjwd5aleadm0j8jfzu0l7krkmv82yjrpk5j86j0vrkmy3eppkcv6e930qukvdy4p6nc8u0ttlwh6qu5gce84wht06xpzjzcqdwev0', 'TLq3NiF3QkwzcFwhZhvVDUSQ3shzbDf6fQ', 'DLYUL5TuJPvQq71xFxdm337Ti5sZyP5BKk'];
 
 const walletUris = [
   'bitcoin:bc1qesd92qv7h3mlh4qqs4grz3e32phvxj6spwkcyz',
@@ -14,6 +14,8 @@ const walletUris = [
   'ethereum:0x0D4aAc6d3C5DF6D162F121992eBD441728B143a2@56',
   'zcash:t1ffcdEs6WUZsK4iTpSg3fYM3STmZ8rfXjy',
   'zcash:u1093sjwd5aleadm0j8jfzu0l7krkmv82yjrpk5j86j0vrkmy3eppkcv6e930qukvdy4p6nc8u0ttlwh6qu5gce84wht06xpzjzcqdwev0',
+  'trust://send?asset=c195&address=TLq3NiF3QkwzcFwhZhvVDUSQ3shzbDf6fQ',
+  'dogecoin:DLYUL5TuJPvQq71xFxdm337Ti5sZyP5BKk',
   'monero:47XCwRMTyEvav4QMqeh8ChaLg4Ubt7ASSWvyW9BG8vB19wXUS4E7C1qWkFnyzFFoTcf8AAmrUDG11EE2B6GFgFAWArkriQd',
 ];
 
@@ -62,7 +64,7 @@ export async function verifyCryptoSupport({ page, url, app, locale, width, decod
   for (const [index, name] of networks.entries()) {
     await combo.click();
     await dialog.getByRole('option', { name, exact: true }).click();
-    const address = [addresses[0], addresses[1], addresses[2], addresses[1], addresses[1], addresses[1], addresses[1], addresses[1], addresses[3], addresses[5], addresses[4]][index];
+    const address = [addresses[0], addresses[1], addresses[2], addresses[1], addresses[1], addresses[1], addresses[1], addresses[1], addresses[3], addresses[5], addresses[6], addresses[7], addresses[4]][index];
     const walletLink = dialog.getByRole('link', { name: address, exact: true });
     assert.equal(await walletLink.textContent(), address);
     assert.equal(await walletLink.getAttribute('href'), walletUris[index]);
@@ -79,10 +81,12 @@ export async function verifyCryptoSupport({ page, url, app, locale, width, decod
       await dialog.locator('.donation-copy').click();
       assert.equal(await page.evaluate(() => navigator.clipboard.readText()), address);
     }
+    if (name === 'TRON' || name === 'Dogecoin') await dialog.screenshot({ path: `/tmp/${app}-crypto-${width}-${locale}-${name.toLowerCase()}.png` });
     if (name === 'Zcash Shielded') await dialog.screenshot({ path: `/tmp/${app}-crypto-${width}-${locale}-shielded.png` });
     assert.deepEqual(await dialog.boundingBox(), baseline);
     if (index > 0 && index < 8) assert.match(await dialog.locator('.donation-assets').textContent(), locale === 'th' ? /USDC, USDT และโทเคนอื่น/ : /USDC, USDT and other tokens/);
-    else assert.equal(await dialog.locator('.donation-assets').textContent(), index === 0 ? 'BTC' : index === 8 || index === 9 ? 'ZEC' : 'XMR');
+    else if (index === 10) assert.equal(await dialog.locator('.donation-assets').textContent(), locale === 'th' ? 'TRX, USDT และโทเคนอื่น ๆ' : 'TRX, USDT and other tokens');
+    else assert.equal(await dialog.locator('.donation-assets').textContent(), index === 0 ? 'BTC' : index === 8 || index === 9 ? 'ZEC' : index === 11 ? 'DOGE' : 'XMR');
   }
   await dialog.screenshot({ path: `/tmp/${app}-crypto-${width}-${locale}-monero.png` });
   assert.equal(await dialog.locator('.donation-instruction').count(), 0);

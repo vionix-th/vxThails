@@ -22,6 +22,8 @@
     solana: ['m6 4-3 4h15l3-4H6Z', 'm3 10 3 4h15l-3-4H3Z', 'm6 16-3 4h15l3-4H6Z'],
     zcash: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z', 'M8 7h8L8 17h8M12 5v2m0 10v2'],
     monero: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z', 'M5 16V9l7 7 7-7v7M5 16h4m6 0h4'],
+    tron: ['M4 3l17 5-8 13L4 3Z M4 3l10 7 7-2M14 10l-1 11'],
+    dogecoin: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z M9 7h3a5 5 0 0 1 0 10H9V7Z M7 12h7'],
     chevronDown: ['m6 9 6 6 6-6'],
     base: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z', 'M3 12h14'],
     arbitrum: ['m12 2 9 5v10l-9 5-9-5V7l9-5Z', 'm8 17 4-10 5 10M14 11l4 8'],
@@ -53,11 +55,16 @@
     { id: 'bnb', name: 'BNB Smart Chain', icon: 'bnb', assets: 'BNB, USDC, USDT and other tokens', chainId: 56, address: evmAddress },
     { id: 'zcash', name: 'Zcash Transparent', icon: 'zcash', assets: 'ZEC', address: 't1ffcdEs6WUZsK4iTpSg3fYM3STmZ8rfXjy' },
     { id: 'zcash-shielded', name: 'Zcash Shielded', icon: 'zcash', assets: 'ZEC', uriScheme: 'zcash', address: 'u1093sjwd5aleadm0j8jfzu0l7krkmv82yjrpk5j86j0vrkmy3eppkcv6e930qukvdy4p6nc8u0ttlwh6qu5gce84wht06xpzjzcqdwev0' },
+    { id: 'tron', name: 'TRON', icon: 'tron', assets: 'TRX, USDT and other tokens', trustWalletAsset: 'c195', address: 'TLq3NiF3QkwzcFwhZhvVDUSQ3shzbDf6fQ' },
+    { id: 'dogecoin', name: 'Dogecoin', icon: 'dogecoin', assets: 'DOGE', address: 'DLYUL5TuJPvQq71xFxdm337Ti5sZyP5BKk' },
     { id: 'monero', name: 'Monero', icon: 'monero', assets: 'XMR', address: '47XCwRMTyEvav4QMqeh8ChaLg4Ubt7ASSWvyW9BG8vB19wXUS4E7C1qWkFnyzFFoTcf8AAmrUDG11EE2B6GFgFAWArkriQd' },
   ];
 
-  // Standard wallet payment URIs; amounts remain donor-entered.
+  // Native wallet handoffs; amounts remain donor-entered.
   function donationWalletUri(network) {
+    if (network.trustWalletAsset) {
+      return `trust://send?asset=${network.trustWalletAsset}&address=${network.address}`;
+    }
     return network.chainId === undefined
       ? `${network.uriScheme ?? network.id}:${network.address}`
       : `ethereum:${network.address}@${network.chainId}`;
@@ -278,7 +285,7 @@
       resetCopyFeedback();
       address.textContent = destination.address;
       address.href = donationWalletUri(destination);
-      assets.textContent = destination.assets.includes(',') ? text('assets', { asset: destination.assets.split(',')[0] }) : destination.assets;
+      assets.textContent = destination.id === 'tron' ? text('tronAssets') : destination.assets.includes(',') ? text('assets', { asset: destination.assets.split(',')[0] }) : destination.assets;
       qrHost.replaceChildren(addressQRCode(destination.address, text('qrLabel', { network: destination.name })));
     }
     const node = el('div', { class: 'crypto-support' }, network.node,
@@ -1253,6 +1260,7 @@
       donation_showQR: "แสดงคิวอาร์โค้ด",
       donation_hideQR: "ซ่อนคิวอาร์โค้ด",
       donation_assets: "{asset}, USDC, USDT และโทเคนอื่น ๆ",
+      donation_tronAssets: "TRX, USDT และโทเคนอื่น ๆ",
       donation_qrLabel: "คิวอาร์โค้ดที่อยู่รับเงินบน {network}",
       donation_qrFailed: "ไม่สามารถแสดงคิวอาร์โค้ดได้ โปรดคัดลอกที่อยู่แทน",
 
@@ -1288,6 +1296,7 @@
       donation_showQR: "Show QR code",
       donation_hideQR: "Hide QR code",
       donation_assets: "{asset}, USDC, USDT and other tokens",
+      donation_tronAssets: "TRX, USDT and other tokens",
       donation_qrLabel: "{network} receiving address QR code",
       donation_qrFailed: "QR code unavailable. Copy the address instead.",
 
